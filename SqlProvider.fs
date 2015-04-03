@@ -7,17 +7,21 @@ open NUnit.Framework.Constraints
 open Microsoft.FSharp.Data.TypeProviders
 
 module Database =
-    type Schema = SqlDataConnection<"Data Source=devlocal;Initial Catalog=MediaLibrary;Integrated Security=True">
+    [<Literal>]
+    let connStr = "Data Source=devlocal;Initial Catalog=MediaLibrary;Integrated Security=True"
 
-    let instance() = Schema.GetDataContext()
+    // type Schema = SqlDataConnection<connStr>
+    type Schema = DbmlFile<"schema.dbml", ResolutionFolder="db", ContextTypeName="DataContext">
 
-    type Movie = Schema.ServiceTypes.Movies
-    type Director = Schema.ServiceTypes.Directors
+    let instance() = new Schema.DataContext(connStr)
+
+    type Movie = Schema.Movies
+    type Director = Schema.Directors
 
 [<SetUp>]
 let resetDb () =
     let db = Database.instance()
-    db.DataContext.ExecuteCommand(sprintf "TRUNCATE TABLE [%s].[%s]" "dbo" "movies")
+    db.ExecuteCommand(sprintf "TRUNCATE TABLE [%s].[%s]" "dbo" "movies")
     |> ignore
 
 [<Test>]
@@ -29,14 +33,14 @@ let ``By default there are no movies`` () =
 
 [<Test>]
 let ``Can write and read some movies`` () =
-    let db = Database.instance()
+    use db = Database.instance()
 
     let movies = [1..10]
                  |> Seq.map (fun i -> Database.Movie(Title=(sprintf "Great movie %d" i), ReleaseYear=1990+i))
     
     movies |> db.Movies.InsertAllOnSubmit
 
-    db.DataContext.SubmitChanges()
+    db.SubmitChanges()
 
     let actual = query {
         for m in db.Movies do
@@ -51,7 +55,7 @@ let ``Can write and read some movies`` () =
 
 [<Test>]
 let ``Find the directors`` () =
-    let db = Database.instance()
+    use db = Database.instance()
 
     let mel = Database.Director(Name="Mel Brooks")
 
@@ -66,7 +70,7 @@ let ``Find the directors`` () =
     
     movies |> db.Movies.InsertAllOnSubmit
 
-    db.DataContext.SubmitChanges()
+    db.SubmitChanges()
 
     db.Movies
     |> Seq.map (fun m -> m.Directors)

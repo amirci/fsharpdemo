@@ -1,0 +1,19 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Database Name="MediaLibrary" xmlns="http://schemas.microsoft.com/linqtosql/dbml/2007">
+  <Table Name="dbo.Directors" Member="Directors">
+    <Type Name="Directors">
+      <Column Name="Id" Type="System.Int32" DbType="Int NOT NULL IDENTITY" IsPrimaryKey="true" IsDbGenerated="true" CanBeNull="false" />
+      <Column Name="Name" Type="System.String" DbType="VarChar(50) NOT NULL" CanBeNull="false" />
+      <Association Name="FK_Movies_Directors" Member="Movies" ThisKey="Id" OtherKey="DirectorId" Type="Movies" DeleteRule="NO ACTION" />
+    </Type>
+  </Table>
+  <Table Name="dbo.Movies" Member="Movies">
+    <Type Name="Movies">
+      <Column Name="Id" Type="System.Int32" DbType="Int NOT NULL IDENTITY" IsPrimaryKey="true" IsDbGenerated="true" CanBeNull="false" />
+      <Column Name="Title" Type="System.String" DbType="VarChar(100) NOT NULL" CanBeNull="false" />
+      <Column Name="ReleaseYear" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="DirectorId" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Association Name="FK_Movies_Directors" Member="Directors" ThisKey="DirectorId" OtherKey="Id" Type="Directors" IsForeignKey="true" />
+    </Type>
+  </Table>
+</Database>
